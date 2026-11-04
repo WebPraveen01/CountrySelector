@@ -4,30 +4,35 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import "./App.css";
 import { useEffectEvent } from "react";
-import { use } from "react";
+import { setCountries, setSelectedCountry, setStates,setSelectedState,setCities,setSelectedCity,} from "./feature/location/locationSlice.js";
+import { useSelector, useDispatch } from "react-redux";
 
 function App() {
-  const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [states, setStates] = useState([]);
-  const [selectedState, setSelectedState] = useState("");
-  const [cities, setCities] = useState([]);
-  const [selectedCity, setSelectedCity] = useState("");
 
+  const dispatch = useDispatch();
+   const {
+  countries,
+  selectedCountry,
+  states,
+  selectedState,
+  cities,
+  selectedCity,
+} = useSelector((state) => state.location);
+  
   useEffect(() => {
     fetch("https://location-selector.labs.crio.do/countries")
       .then((response) => response.json())
       .then((data) => {
-        setCountries(data);
+        dispatch(setCountries(data));
       })
       .catch((error) => {
         console.log("Error fetching countries", error);
       });
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!selectedCountry) {
-      setStates([]);
+      dispatch(setStates([]));
       return;
     }
 
@@ -36,16 +41,16 @@ function App() {
     )
       .then((response) => response.json())
       .then((data) => {
-        setStates(data);
+        dispatch(setStates(data));
       })
       .catch((error) => {
         console.error("Error fetching states:", error);
       });
-  }, [selectedCountry]);
+  }, [selectedCountry,dispatch]);
 
   useEffect(() => {
     if (!selectedCountry || !selectedState) {
-      setCities([]);
+     dispatch(setCities([]));
       return;
     }
     fetch(
@@ -54,12 +59,12 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         //console.log("Cities API response:", data);
-        setCities(data);
+        dispatch(setCities(data));
       })
       .catch((error) => {
         console.log("Error Fetching error", error);
       });
-  }, [selectedCountry, selectedState]);
+  }, [selectedCountry, selectedState,dispatch]);
 
   return (
     <>
@@ -68,9 +73,11 @@ function App() {
         <select
           value={selectedCountry}
           onChange={(e) => {
-            setSelectedCountry(e.target.value);
-            setSelectedState("");
-            setSelectedCity("");
+            dispatch(setSelectedCountry(e.target.value));
+            dispatch(setSelectedState(""));
+            dispatch(setSelectedCity(""));
+            dispatch(setStates([]));
+            dispatch(setCities([]));
           }}
         >
           <option value="">Select Country</option>
@@ -84,8 +91,9 @@ function App() {
           value={selectedState}
           disabled={!selectedCountry}
           onChange={(e) => {
-            setSelectedState(e.target.value);
-            setSelectedCity("");
+            dispatch(setSelectedState(e.target.value));
+            dispatch(setSelectedCity(""));
+            dispatch(setCities([]))
           }}
         >
           <option>Select State</option>
@@ -98,7 +106,7 @@ function App() {
         <select
           value={selectedCity}
           disabled={!selectedState}
-          onChange={(e) => setSelectedCity(e.target.value)}
+          onChange={(e) => dispatch(setSelectedCity(e.target.value))}
         >
           <option>Select City</option>
           {cities.map((city) => (
